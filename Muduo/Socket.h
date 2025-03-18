@@ -1,31 +1,30 @@
-#ifndef MUDUO_BASE_SOCKET_H
-#define MUDUO_BASE_SOCKET_H
+#pragma once
 
 #include "noncopyable.h"
-#include "InetAddress.h"
 
+class InetAddress;
 
-//封装了用于监听的套接字sockfd
-class Socket{
+// 封装socket fd
+class Socket : noncopyable
+{
 public:
-  explicit Socket(int sockfd)
-  :sockfd_(sockfd)
-  {}
+    explicit Socket(int sockfd)
+        : sockfd_(sockfd)
+    {}
 
-  ~Socket();
-  int fd()const {return sockfd_;}
-  void bindAddress(const InetAddress& localaddr);
-  void listen();
-  int accept(InetAddress* peeraddr);
+    ~Socket();
 
-  void shutdownWrite();
+    int fd() const { return sockfd_; }
+    void bindAddress(const InetAddress &localaddr);
+    void listen();
+    int accept(InetAddress *peeraddr);
 
-  void setTcpNoDelay(bool on);
-  void setReuseAddr(bool on);
-  void setReusePort(bool on);
-  void setKeepAlive(bool on);
+    void shutdownWrite();
+
+    void setTcpNoDelay(bool on);
+    void setReuseAddr(bool on);
+    void setReusePort(bool on);
+    void setKeepAlive(bool on);
 private:
-  const int sockfd_;
+    const int sockfd_;
 };
-
-#endif
