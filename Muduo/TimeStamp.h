@@ -1,16 +1,16 @@
-#ifndef MUDUO_BASE_TIMESTAMP_H
-#define MUDUO_BASE_TIMESTAMP_H
+#pragma once
+
 #include <iostream>
 #include <string>
-#include <cstdint>
 
-class TimeStamp{
+// 时间类
+class Timestamp
+{
 public:
-  TimeStamp();
-  TimeStamp(int64_t microSecondsSinceEpoch);
-  static TimeStamp now();
-  std::string toString();
+    Timestamp();
+    explicit Timestamp(int64_t microSecondsSinceEpoch);
+    static Timestamp now();
+    std::string toString() const;
 private:
-  int64_t microSecondsSinceEpoch_;
+    int64_t microSecondsSinceEpoch_;
 };
-#endif
