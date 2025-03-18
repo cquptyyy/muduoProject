@@ -1,67 +1,76 @@
-#ifndef MUDUO_BASE_TCPSERVER_H
-#define MUDUO_BASE_TCPSERVER_H
+#pragma once
 
-#include "noncopyable.h"
-#include "InetAddress.h"
-#include "Callback.h"
+/**
+ * 用户使用muduo编写服务器程序
+ */ 
 #include "EventLoop.h"
 #include "Acceptor.h"
-#include "EventLoop.h"
+#include "InetAddress.h"
+#include "noncopyable.h"
 #include "EventLoopThreadPool.h"
+#include "Callbacks.h"
+#include "TcpConnection.h"
+#include "Buffer.h"
 
+#include <functional>
 #include <string>
-#include <atomic>
 #include <memory>
+#include <atomic>
 #include <unordered_map>
 
-
-class TcpServer:noncopyable{
+// 对外的服务器编程使用的类
+class TcpServer : noncopyable
+{
 public:
-  using ThreadInitCallback=std::function<void(EventLoop*)>;
+    using ThreadInitCallback = std::function<void(EventLoop*)>;//对loop进行初始化工作
+    
 
-  enum Option{
-    kNoReusePort,
-    kReusePort,
-  };
+    enum Option
+    {
+        kNoReusePort,
+        kReusePort,
+    };
 
-  TcpServer(EventLoop* loop,const InetAddress& listenAddr,const std::string& nameArg, Option option=kNoReusePort);
-  ~TcpServer();
-  void setThreadInitCallback(const ThreadInitCallback& cb){threadInitCallback_=cb;}
-  void setConnectionCallback(const ConnectionCallback& cb){connectionCallback_=cb;}
-  void setMessageCallback(const MessageCallback& cb){messageCallback_=cb;}
-  void setWriteComplateCallback(const WriteCompleteCallback& cb){writeCompleteCallback_=cb;}
+    TcpServer(EventLoop *loop,
+                const InetAddress &listenAddr,
+                const std::string &nameArg,
+                Option option = kNoReusePort);
+    ~TcpServer();
 
-  void setThreadNum(int numThreads);
+    void setThreadInitcallback(const ThreadInitCallback &cb) { threadInitCallback_ = cb; }
+    void setConnectionCallback(const ConnectionCallback &cb) { connectionCallback_ = cb; }
+    void setMessageCallback(const MessageCallback &cb) { messageCallback_ = cb; }
+    void setWriteCompleteCallback(const WriteCompleteCallback &cb) { writeCompleteCallback_ = cb; }
 
-  void start();
+    // 设置底层subloop的个数
+    void setThreadNum(int numThreads);
+
+    // 开启服务器监听
+    void start();
 private:
-  void newConnection(int sockfd,const InetAddress& peerAddr);
-  void removeConnection(const TcpConnectionPtr& conn);
-  void removeConnectionInLoop(const TcpConnectionPtr& conn);
+    void newConnection(int sockfd, const InetAddress &peerAddr);
+    void removeConnection(const TcpConnectionPtr &conn);
+    void removeConnectionInLoop(const TcpConnectionPtr &conn);
 
-  using ConnectionMap =std::unordered_map<std::string,TcpConnectionPtr>;//连接的
+    using ConnectionMap = std::unordered_map<std::string, TcpConnectionPtr>;
 
-  EventLoop* loop_;//用户传进来的mainloop
-  
-  const std::string name_;//tcpServer的名字
-  const std::string ipPort_;//监听套接字的ip+port
+    EventLoop *loop_; // baseLoop 用户定义的loop
 
-  std::unique_ptr<Acceptor> acceptor_;//运行在mainloop,主要任务就是监听新连接到来的事件
+    const std::string ipPort_;
+    const std::string name_;
 
-  std::unique_ptr<EventLoopThreadPool> threadPool_;//线程池
+    std::unique_ptr<Acceptor> acceptor_; // 运行在mainLoop，任务就是监听新连接事件
 
-  ConnectionCallback connectionCallback_;
-  MessageCallback messageCallback_;
-  WriteCompleteCallback writeCompleteCallback_;
+    std::shared_ptr<EventLoopThreadPool> threadPool_; // one loop per thread
 
-  ThreadInitCallback threadInitCallback_;//初始化loop
+    ConnectionCallback connectionCallback_; // 有新连接时的回调
+    MessageCallback messageCallback_; // 有读写消息时的回调
+    WriteCompleteCallback writeCompleteCallback_; // 消息发送完成以后的回调
 
-  std::atomic_int started_;
+    ThreadInitCallback threadInitCallback_; // loop线程初始化的回调
 
-  int nextConnId_;
-  ConnectionMap connections_;
+    std::atomic_int started_;
+
+    int nextConnId_;
+    ConnectionMap connections_; // 保存所有的连接
 };
-
-
-
-#endif
