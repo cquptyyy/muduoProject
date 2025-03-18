@@ -1,71 +1,74 @@
-#ifndef MUDUO_BASE_LOGGER_H
-#define MUDUO_BASE_LOGGER_H
+#pragma once
 
-#include "noncopyable.h"
 #include <string>
 
-//LOG_INFO("****%d,****%s",...);
+#include "noncopyable.h"
 
-#define LOG_INFO(logmsgFormat,...)\
-do{\
-  Logger& logger=Logger::getInstance();\
-  logger.setLogLevel(INFO);\
-  char buffer[1024];\
-  snprintf(buffer,sizeof(buffer),logmsgFormat,##__VA_ARGS__);\
-  logger.log(buffer);\
-}while(0)
+// LOG_INFO("%s %d", arg1, arg2)
+#define LOG_INFO(logmsgFormat, ...) \
+    do \
+    { \
+        Logger &logger = Logger::instance(); \
+        logger.setLogLevel(INFO); \
+        char buf[1024] = {0}; \
+        snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
+        logger.log(buf); \
+    } while(0) 
 
-#define LOG_ERROR(logmsgFormat,...)\
-do{\
-  Logger& logger=Logger::getInstance();\
-  logger.setLogLevel(ERROR);\
-  char buffer[1024];\
-  snprintf(buffer,sizeof(buffer),logmsgFormat,##__VA_ARGS__);\
-  logger.log(buffer);\
-}while(0)
+#define LOG_ERROR(logmsgFormat, ...) \
+    do \
+    { \
+        Logger &logger = Logger::instance(); \
+        logger.setLogLevel(ERROR); \
+        char buf[1024] = {0}; \
+        snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
+        logger.log(buf); \
+    } while(0) 
 
-#define LOG_FATAL(logmsgFormat,...)\
-do{\
-  Logger& logger=Logger::getInstance();\
-  logger.setLogLevel(FATAL);\
-  char buffer[1024];\
-  snprintf(buffer,sizeof(buffer),logmsgFormat,##__VA_ARGS__);\
-  logger.log(buffer);\
-  exit(1);\
-}while(0)
+#define LOG_FATAL(logmsgFormat, ...) \
+    do \
+    { \
+        Logger &logger = Logger::instance(); \
+        logger.setLogLevel(FATAL); \
+        char buf[1024] = {0}; \
+        snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
+        logger.log(buf); \
+        exit(-1); \
+    } while(0) 
 
-#ifdef MODE_DEBUG
-  #define LOG_DEBUG(logmsgFormat,...)\
-  do{\
-    Logger& logger=Logger::getInstance();\
-    logger.setLogLevel(DEBUG);\
-    char buffer[1024];\
-    snprintf(buffer,sizeof(buffer),logmsgFormat,## __VA_ARGS__);\
-    logger.log(buffer);\
-  }while(0)
+#ifdef MUDEBUG
+#define LOG_DEBUG(logmsgFormat, ...) \
+    do \
+    { \
+        Logger &logger = Logger::instance(); \
+        logger.setLogLevel(DEBUG); \
+        char buf[1024] = {0}; \
+        snprintf(buf, 1024, logmsgFormat, ##__VA_ARGS__); \
+        logger.log(buf); \
+    } while(0) 
 #else
-   #define LOG_DEBUG(logmsgFormat,...)
+    #define LOG_DEBUG(logmsgFormat, ...)
 #endif
 
-//日志等级
-enum LogLevel{
-  INFO,//正常信息
-  ERROR,//错误信息
-  FATAL,//致命信息
-  DEBUG,//调试信息
+// 定义日志的级别  INFO  ERROR  FATAL  DEBUG 
+enum LogLevel
+{
+    INFO,  // 普通信息
+    ERROR, // 错误信息
+    FATAL, // core信息
+    DEBUG, // 调试信息
 };
 
-//日志
-class Logger:noncopyable{
+// 输出一个日志类
+class Logger : noncopyable
+{
 public:
-  //获取日志单例对象
-  static Logger& getInstance();
-  //设置日志等级
-  void setLogLevel(int loglevel);
-  //打印日志
-  void log(std::string msg);
+    // 获取日志唯一的实例对象
+    static Logger& instance();
+    // 设置日志级别
+    void setLogLevel(int level);
+    // 写日志
+    void log(std::string msg);
 private:
-  int logLevel_;
+    int logLevel_;
 };
-
-#endif
